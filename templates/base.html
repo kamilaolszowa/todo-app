@@ -9,6 +9,11 @@
 
 <body>
     <h1>Todo App</h1>
+
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
     <form action="/add" method="post">
         <div>
             <label for="title">Todo Title</label>

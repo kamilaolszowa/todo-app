@@ -17,37 +17,59 @@ with app.app_context():
     db.create_all()
 
 
+def redirect_to_index(error=None):
+    return redirect(url_for("index", error=error))
+
+
 @app.route('/')
 def index():
     todo_list = Todo.query.all()
-    print(todo_list)
-    return render_template('base.html', todo_list=todo_list)
+    error = request.args.get('error')
+    return render_template('base.html', todo_list=todo_list, error=error)
 
 
 @app.route("/add", methods=["POST"])
 def add():
     title = request.form.get("title")
-    if title and title.strip():
+    if not title or not title.strip():
+        return redirect_to_index(error="Title is required")
+    if len(title) > 255:
+        return redirect_to_index(error="Title is too long")
+    try:
         new_todo = Todo(title=title, complete=False)
         db.session.add(new_todo)
         db.session.commit()
-    return redirect(url_for("index"))
+    except Exception as e:
+        return redirect_to_index(error=f'Error adding todo: {e}')
+    return redirect_to_index()
 
 
 @app.route("/update/<int:todo_id>")
 def update(todo_id):
-    todo = Todo.query.filter_by(id=todo_id).first()
-    todo.complete = not todo.complete
-    db.session.commit()
-    return redirect(url_for("index"))
+    try:
+        todo = Todo.query.filter_by(id=todo_id).first()
+        if todo:
+            todo.complete = not todo.complete
+            db.session.commit()
+        else:
+            return redirect_to_index(error="Todo not found")
+    except Exception as e:
+        return redirect_to_index(error=f"Error updating todo: {e}")
+    return redirect_to_index()
 
 
 @app.route("/delete/<int:todo_id>")
 def delete(todo_id):
-    todo = Todo.query.filter_by(id=todo_id).first()
-    db.session.delete(todo)
-    db.session.commit()
-    return redirect(url_for("index"))
+    try:
+        todo = Todo.query.filter_by(id=todo_id).first()
+        if todo:
+            db.session.delete(todo)
+            db.session.commit()
+        else:
+            return redirect_to_index(error="Todo not found")
+    except Exception as e:
+        return redirect_to_index(error=f"Error deleting todo: {e}")
+    return redirect_to_index()
 
 
 @app.route('/about')
