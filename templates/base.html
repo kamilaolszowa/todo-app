@@ -10,6 +10,34 @@
 <body>
     <h1>Todo App</h1>
 
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    <form action="/add" method="post">
+        <div>
+            <label for="title">Todo Title</label>
+            <input type="text" id="title" name="title" placeholder="Enter Todo...">
+            <br>
+            <button type="submit">Add</button>
+        </div>
+
+    </form>
+
+    {% for todo in todo_list %}
+
+    <p> {{ todo.id }} | {{todo.title}} </p>
+
+    {% if todo.complete == False %}
+    <span>Not complete</span>
+    {% else %}
+    <span>Completed</span>
+    {% endif %}
+    <a href="/update/{{ todo.id }}">Update</a>
+    <a href="/delete/{{ todo.id }}">Delete</a>
+
+    {% endfor %}
+
 </body>
 
 </html>
